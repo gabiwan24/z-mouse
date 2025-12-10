@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktive Z</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Inter', 'Helvetica Neue', 'Arial Black', Arial, sans-serif;
+        }
+
+        .container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .letter {
+            font-size: 20vw;
+            font-weight: 900;
+            color: #000000;
+            line-height: 1;
+            user-select: none;
+            cursor: default;
+            will-change: transform;
+            transition: transform 0.1s linear; 
+        }
+
+        .wrapper {
+            display: flex;
+            gap: 1vw; 
+            align-items: center; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="wrapper" id="letter-wrapper">
+            <!-- 
+              Änderung: Das erste Element hat jetzt Speed 0.0.
+              Das sorgt dafür, dass das "Anker"-Element (das Z auf der gegenüberliegenden Seite)
+              sich gar nicht bewegt, sondern an seiner Neutralposition haftet.
+            -->
+            <div class="letter" data-base-speed="0.0">Z</div>
+            <div class="letter" data-base-speed="0.08">Z</div>
+            <div class="letter" data-base-speed="0.16">Z</div>
+            <div class="letter" data-base-speed="0.25">Z</div>
+        </div>
+    </div>
+
+    <script>
+        const letters = document.querySelectorAll('.letter');
+        
+        // Array der Basisgeschwindigkeiten [0.0, 0.08, 0.16, 0.25]
+        const baseSpeeds = Array.from(letters).map(l => parseFloat(l.getAttribute('data-base-speed')));
+
+        function updatePosition(e) {
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            const mouseX = clientX !== undefined ? clientX : centerX;
+            const mouseY = clientY !== undefined ? clientY : centerY;
+
+            const xPos = (mouseX - centerX);
+            const yPos = (mouseY - centerY);
+
+            // Factor: 0 (ganz links) bis 1 (ganz rechts)
+            let factor = (xPos / window.innerWidth) + 0.5;
+            factor = Math.max(0, Math.min(1, factor));
+
+            letters.forEach((letter, index) => {
+                // Linkes Profil (Maus links): Index 0 ist schnell (0.25), Index 3 ist Anker (0.0)
+                const speedLeft = baseSpeeds[baseSpeeds.length - 1 - index];
+                
+                // Rechtes Profil (Maus rechts): Index 0 ist Anker (0.0), Index 3 ist schnell (0.25)
+                const speedRight = baseSpeeds[index];
+
+                // Interpolation basierend auf der Mausposition
+                const currentSpeed = (speedLeft * (1 - factor)) + (speedRight * factor);
+
+                const xMove = xPos * currentSpeed * 6.0; 
+                const yMove = yPos * currentSpeed * 4.0;
+
+                const depthScale = 1 + (yPos / window.innerHeight) * (currentSpeed * 0.5);
+
+                letter.style.transform = `translate3d(${xMove}px, ${yMove}px, 0) scale(${depthScale})`;
+            });
+        }
+
+        document.addEventListener('mousemove', updatePosition);
+        document.addEventListener('touchmove', updatePosition, { passive: false });
+        
+        document.addEventListener('mouseleave', () => {
+            letters.forEach(letter => {
+                letter.style.transform = 'translate3d(0,0,0) scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
