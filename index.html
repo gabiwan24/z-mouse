@@ -28,7 +28,8 @@
         }
 
         .letter {
-            font-size: 20vw;
+            /* Änderung: Schriftgröße halbiert (von 20vw auf 10vw) */
+            font-size: 10vw;
             font-weight: 900;
             color: #000000;
             line-height: 1;
@@ -50,21 +51,21 @@
     <div class="container">
         <div class="wrapper" id="letter-wrapper">
             <!-- 
-              Änderung: Das erste Element hat jetzt Speed 0.0.
-              Das sorgt dafür, dass das "Anker"-Element (das Z auf der gegenüberliegenden Seite)
-              sich gar nicht bewegt, sondern an seiner Neutralposition haftet.
+               Änderung: 
+               Das äußerste Element wurde von 0.25 auf 0.45 erhöht. 
+               Die Zwischenwerte wurden angepasst (0.12, 0.26), damit die Verteilung harmonisch bleibt.
             -->
             <div class="letter" data-base-speed="0.0">Z</div>
-            <div class="letter" data-base-speed="0.08">Z</div>
-            <div class="letter" data-base-speed="0.16">Z</div>
-            <div class="letter" data-base-speed="0.25">Z</div>
+            <div class="letter" data-base-speed="0.12">Z</div>
+            <div class="letter" data-base-speed="0.26">Z</div>
+            <div class="letter" data-base-speed="0.45">Z</div>
         </div>
     </div>
 
     <script>
         const letters = document.querySelectorAll('.letter');
         
-        // Array der Basisgeschwindigkeiten [0.0, 0.08, 0.16, 0.25]
+        // Array der Basisgeschwindigkeiten
         const baseSpeeds = Array.from(letters).map(l => parseFloat(l.getAttribute('data-base-speed')));
 
         function updatePosition(e) {
@@ -80,18 +81,13 @@
             const xPos = (mouseX - centerX);
             const yPos = (mouseY - centerY);
 
-            // Factor: 0 (ganz links) bis 1 (ganz rechts)
             let factor = (xPos / window.innerWidth) + 0.5;
             factor = Math.max(0, Math.min(1, factor));
 
             letters.forEach((letter, index) => {
-                // Linkes Profil (Maus links): Index 0 ist schnell (0.25), Index 3 ist Anker (0.0)
                 const speedLeft = baseSpeeds[baseSpeeds.length - 1 - index];
-                
-                // Rechtes Profil (Maus rechts): Index 0 ist Anker (0.0), Index 3 ist schnell (0.25)
                 const speedRight = baseSpeeds[index];
 
-                // Interpolation basierend auf der Mausposition
                 const currentSpeed = (speedLeft * (1 - factor)) + (speedRight * factor);
 
                 const xMove = xPos * currentSpeed * 6.0; 
